@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
+const { app, BrowserWindow, globalShortcut, ipcMain, session } = require("electron");
 const {
   settings,
   store,
@@ -29,6 +29,19 @@ if (!app.isPackaged) {
   });
 }
 
+const URL = require('url').URL
+
+app.on('web-contents-created', (event, contents) => {
+  contents.on('will-navigate', (event, navigationUrl) => {
+    const parsedUrl = new URL(navigationUrl)
+
+    if (parsedUrl.origin !== tidalUrl) {
+      event.preventDefault()
+    }
+  })
+})
+
+
 function createWindow(options = {}) {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -40,6 +53,7 @@ function createWindow(options = {}) {
     tray: true,
     backgroundColor: options.backgroundColor,
     webPreferences: {
+      sandbox: true,
       affinity: "window",
       preload: path.join(__dirname, "preload.js"),
       plugins: true,
@@ -88,6 +102,16 @@ function addGlobalShortcuts() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
+  session.defaultSession.webRequest.onBeforeRequest({ urls: ['<all_urls>'] }, function(details, callback) {
+    var test_url = details.url;
+    var check_block_list =/[.\-_/\?](clicks?|tracking|logs?)[.\-_/]?|[.\-_/\?](facebook|datadome|google)[.\-_/]?/gi
+    var block_me = check_block_list.test(test_url);
+    if(block_me){
+      callback({cancel: true});
+    }else{
+      callback({cancel: false})
+    }
+  });
   createWindow();
   addMenu();
   createSettingsWindow();
