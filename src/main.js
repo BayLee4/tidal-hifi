@@ -104,7 +104,7 @@ function addGlobalShortcuts() {
 app.on("ready", () => {
   session.defaultSession.webRequest.onBeforeRequest({ urls: ['<all_urls>'] }, function(details, callback) {
     var test_url = details.url;
-    var check_block_list =/[.\-_/\?](clicks?|tracking|logs?)[.\-_/]?|[.\-_/\?](facebook|datadome|google)[.\-_/]?/gi
+    var check_block_list =/[.\-_/\?](clicks?|tracking)[.\-_/]?|[.\-_/\?](facebook|datadome|google|trackingjs)[.\-_/]?/gi
     var block_me = check_block_list.test(test_url);
     if(block_me){
       callback({cancel: true});
